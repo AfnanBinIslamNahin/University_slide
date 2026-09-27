@@ -1,0 +1,37 @@
+Dear students,
+I would like to inform you that our assignment submission has been fixed on dated 17-03-2021.
+You can submit  assignment on portal until 17-03-2021 in Assignment1 section.
+Thanks.
+Assignment Questions.
+
+1. Consider the following grammar
+
+	E->E+T|T
+	T->TF|F
+	F->F*|a|b
+	Construct the SLR parsing table and parse the input a*b+a
+ 
+2. Write the semantic rules for the following grammar.
+
+	S -> TL
+	T-> int
+	T->float
+	T->char
+	T->double
+	L->L,id
+	L->id
+
+3. Consider the following input statement and represent it in three address code.
+	a=b*-c+b*-c
+
+4. Construct basic blocks and data flow graph for the following code snippet
+
+	for (i=1 to n)
+	{
+		j=1;
+		while(j<=n)
+		{
+			A=B*C/D;
+			j=j+1;
+		}
+	}
