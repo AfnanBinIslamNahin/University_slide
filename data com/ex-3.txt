@@ -1,0 +1,88 @@
+A1 = 7;
+A2 = 9;
+s = 16/30;
+f1 = 1600;
+f2 = 1200;
+fs = 8000; % Sampling freque
+%Define signal 
+t = 0:1/fs:1-1/fs;
+x = A1 * sin(2*pi*f1*t) + A2 * cos(2*pi*f2*t) + s * randn(size(t));
+
+
+
+
+
+
+
+
+
+
+
+
+
+A1 = 7;
+A2 = 9;
+s = 16/30;
+f1 = 1600;
+f2 = 1200;
+fs = 8000; % Sampling freque
+%Define signal 
+t = 0:1/fs:1-1/fs;  % Time vector with 10 kHz sampling rate
+
+% Generate the signal components
+s1 = A1 * sin(2*pi*f1*t);
+s2 = A2 * cos(2*pi*f2*t);
+signal = s1 + s2;  % Clean signal (without noise)
+
+% Generate noise
+noise = s * randn(size(t));
+
+% Composite signal (signal + noise)
+x = signal + noise;
+
+% Compute power of signal and noise
+P_signal = mean(signal.^2);   % Power of the clean signal
+P_noise = mean(noise.^2);     % Power of the noise
+
+% Compute SNR in dB
+SNR_dB = 10 * log10(P_signal / P_noise);
+
+% Display the result
+disp(['SNR Value: ', num2str(SNR_dB), ' dB']);
+
+
+
+
+
+% Given frequencies
+f1 = 1600;  
+f2 = 1200;  
+
+% Compute bandwidth
+B = f1 - f2;  
+
+% Compute SNR in linear scale
+SNR_linear = 10^(SNR_dB / 10);  
+
+% Compute Shannon Capacity
+C = B * log2(1 + SNR_linear);  
+
+% Display results
+disp(['Bandwidth of the Signal: ', num2str(B), ' Hz']);
+disp(['Maximum Channel Capacity: ', num2str(C), ' bps']);
+% Given frequencies
+f1 = 1600;  
+f2 = 1200;  
+
+% Compute bandwidth
+B = f1 - f2;  
+
+% Compute SNR in linear scale
+SNR_linear = 10^(SNR_dB / 10);  
+
+% Compute Shannon Capacity
+C = B * log2(1 + SNR_linear);  
+
+% Display results
+disp(['Bandwidth of the Signal: ', num2str(B), ' Hz']);
+disp(['Maximum Channel Capacity: ', num2str(C), ' bps']);

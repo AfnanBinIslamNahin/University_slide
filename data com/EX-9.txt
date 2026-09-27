@@ -1,0 +1,175 @@
+clc;
+clear;
+close all;
+
+% Input message
+Transmitted_Message = 'We Enjoy Data Comm';
+
+% Convert to binary stream (LSB first)
+x = asc2bn(Transmitted_Message);
+disp('Binary stream at transmitter:');
+disp(x);
+
+% Parameters
+bp = 0.000001;            % Bit period
+br = 1 / bp;              % Bit rate
+f = br * 2;               % Carrier frequency
+fs = 100;                 % Samples per bit
+A = 5;                    % Amplitude
+
+% ======================== 1. Digital Signal ==============================
+bitSig_tx = [];
+for i = 1:length(x)
+    if x(i) == 1
+        bitSig_tx = [bitSig_tx 5*ones(1, fs)];
+    else
+        bitSig_tx = [bitSig_tx zeros(1, fs)];
+    end
+end
+
+time1 = linspace(0, length(x)*bp, length(bitSig_tx));
+subplot(4,1,1);
+plot(time1, bitSig_tx, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Transmitted Digital Signal');
+axis([0 max(time1) -1 6]);
+grid on;
+
+% ======================== 2. QPSK Modulation ============================
+% Ensure even number of bits
+if mod(length(x),2) ~= 0
+    x(end+1) = 0;
+end
+
+symbols = reshape(x, 2, []).';
+t = bp/fs:bp/fs:2*bp;
+modulated = [];
+
+for i = 1:size(symbols,1)
+    bits = symbols(i,:);
+    if isequal(bits, [0 0])
+        theta = pi/4;
+    elseif isequal(bits, [0 1])
+        theta = 3*pi/4;
+    elseif isequal(bits, [1 1])
+        theta = 5*pi/4;
+    elseif isequal(bits, [1 0])
+        theta = 7*pi/4;
+    end
+    sig = A * cos(2*pi*f*t + theta);
+    modulated = [modulated sig];
+end
+
+T = length(modulated);
+time2 = linspace(0, T*(bp/fs), T);
+subplot(4,1,2);
+plot(time2, modulated);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('QPSK Modulated Signal');
+grid on;
+
+% ======================== 3. AWGN Received ==============================
+received = awgn(modulated, 50, 'measured');
+
+subplot(4,1,3);
+plot(time2, received);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Received Signal (With AWGN)');
+grid on;
+
+% ======================== 4. Demodulation ===============================
+ref_angles = [pi/4, 3*pi/4, 5*pi/4, 7*pi/4];
+ref_bits = [0 0; 0 1; 1 1; 1 0];
+demodBits = [];
+
+receivedSymbols = reshape(received, [], size(symbols,1)).';
+
+for i = 1:size(receivedSymbols,1)
+    segment = receivedSymbols(i,:);
+    max_corr = -Inf;
+    best_bits = [0 0];
+    
+    for j = 1:length(ref_angles)
+        ref = A * cos(2*pi*f*t + ref_angles(j));
+        corr = trapz(t, segment .* ref);
+        if corr > max_corr
+            max_corr = corr;
+            best_bits = ref_bits(j,:);
+        end
+    end
+    
+    demodBits = [demodBits best_bits];
+end
+
+% Plot demodulated digital signal
+bitSig_rx = [];
+for b = demodBits
+    if b == 1
+        bitSig_rx = [bitSig_rx 5*ones(1,fs)];
+    else
+        bitSig_rx = [bitSig_rx zeros(1,fs)];
+    end
+end
+
+time4 = linspace(0, length(demodBits)*bp, length(bitSig_rx));
+subplot(4,1,4);
+plot(time4, bitSig_rx, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Demodulated Digital Signal');
+axis([0 max(time4) -1 6]);
+grid on;
+
+% Convert back to text
+Received_Message = bin2asc(demodBits);
+disp('Received Message:');
+disp(Received_Message);
+
+
+
+
+***************asc2bn file*******************************************
+
+
+
+function dn = asc2bn(txt) 
+dec=double(txt)  %Text to ASCII (decimal) 
+p2=2.^(0:-1:-7)  % 2^0,2^-1,.......,2^-7 
+B=mod(floor(p2'*dec),2) %Decimal to binary conversion 
+%Columns of B are bits of chars 
+dn=reshape(B,1,numel(B));%Bytes to serial conbversion 
+end 
+
+
+
+
+
+
+
+
+***************bin2asc file*******************************************
+
+
+function txt = bin2asc(dn) 
+%bin2asc    Serial binary to ASCII to text conversion 
+%           8 bits per char , LSB first 
+%           >> txt= bin2asc(dn) << 
+%           where dn is binary input sequence 
+%                 txt is output text string 
+L=length(dn); %Length of input string 
+L8=8*floor(L/8); %Multiple of 8 Length 
+B=reshape(dn(1:L8),8,L8/8); %Cols of B are bits of chars 
+p2=2.^(0:7); %power of 2 
+dec=p2*B;  %Binary to decimal conversion 
+txt=char(dec); %ASCII (decimal) to txt 
+end 
+
+
+
+
+
+
+

@@ -1,0 +1,214 @@
+clc;
+clear all;
+close all;
+
+% Digital input signals
+S1 = [1 0 1 1 0 0 1 0];
+S2 = [0 1 0 0 1 1 0 1];
+
+% Parameters
+A = 5;             % Amplitude for bit 1
+bp = 1;            % Bit period
+fs = 1000;         % Sampling frequency
+f1 = 10;           % Carrier frequency for S1
+f2 = 20;           % Carrier frequency for S2
+t_bit = 0:1/fs:bp-1/fs;  % Time vector for one bit
+
+% ASK modulation for S1
+ask_s1 = [];
+for i = 1:length(S1)
+    if S1(i) == 1
+        y = A * sin(2*pi*f1*t_bit);
+    else
+        y = zeros(1, length(t_bit));
+    end
+    ask_s1 = [ask_s1 y];
+end
+
+% ASK modulation for S2
+ask_s2 = [];
+for i = 1:length(S2)
+    if S2(i) == 1
+        y = A * sin(2*pi*f2*t_bit);
+    else
+        y = zeros(1, length(t_bit));
+    end
+    ask_s2 = [ask_s2 y];
+end
+
+% Time axis
+t_total = 0:1/fs:bp*length(S1)-1/fs;
+
+% Plot ASK signals
+figure;
+subplot(2,1,1);
+plot(t_total, ask_s1, 'b');
+title('ASK Modulated Signal for S1');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(2,1,2);
+plot(t_total, ask_s2, 'r');
+title('ASK Modulated Signal for S2');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+
+
+
+
+
+
+
+
+
+
+clc;
+clear all;
+close all;
+
+% Digital input signals
+S1 = [1 0 1 1 0 0 1 0];
+S2 = [0 1 0 0 1 1 0 1];
+
+% Parameters
+A = 5;                  % Amplitude for bit 1
+bp = 1;                 % Bit period (1 second per bit)
+fs = 1000;              % Sampling frequency
+f1 = 10;                % Carrier frequency for S1 (Hz)
+f2 = 30;                % Carrier frequency for S2 (Hz)
+t_bit = 0:1/fs:bp-1/fs; % Time vector for one bit
+
+% ASK modulation for S1
+ask_s1 = [];
+for i = 1:length(S1)
+    if S1(i) == 1
+        y = A * sin(2*pi*f1*t_bit);
+    else
+        y = zeros(1, length(t_bit));
+    end
+    ask_s1 = [ask_s1 y];
+end
+
+% ASK modulation for S2
+ask_s2 = [];
+for i = 1:length(S2)
+    if S2(i) == 1
+        y = A * sin(2*pi*f2*t_bit);
+    else
+        y = zeros(1, length(t_bit));
+    end
+    ask_s2 = [ask_s2 y];
+end
+
+% Time vector for total signal
+t_total = 0:1/fs:bp*length(S1)-1/fs;
+
+% Frequency Division Multiplexing (FDM)
+composite_signal = ask_s1 + ask_s2;
+
+% Plot individual ASK signals and composite signal
+figure;
+subplot(3,1,1);
+plot(t_total, ask_s1, 'b');
+title('ASK Modulated Signal S1 (f = 10 Hz)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(3,1,2);
+plot(t_total, ask_s2, 'r');
+title('ASK Modulated Signal S2 (f = 30 Hz)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(3,1,3);
+plot(t_total, composite_signal, 'k');
+title('FDM Composite Signal (S1 + S2)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+
+
+
+
+
+
+
+
+
+clc;
+clear all;
+close all;
+
+% Parameters
+S1 = [1 0 1 1 0];        % Original digital signal 1
+S2 = [0 1 0 1 1];        % Original digital signal 2
+bp = 1;                  % Bit period
+f1 = 10;                 % Frequency for S1
+f2 = 30;                 % Frequency for S2
+A = 5;                   % Amplitude
+t_bit = 0:0.01:bp;       % Time vector for one bit
+
+% --- Step 1: Generate Composite Signal (FDM) ---
+signal1 = [];
+signal2 = [];
+for i = 1:length(S1)
+    if S1(i) == 1
+        sig1 = A * sin(2*pi*f1*t_bit);
+    else
+        sig1 = zeros(1, length(t_bit));
+    end
+    if S2(i) == 1
+        sig2 = A * sin(2*pi*f2*t_bit);
+    else
+        sig2 = zeros(1, length(t_bit));
+    end
+    signal1 = [signal1 sig1];
+    signal2 = [signal2 sig2];
+end
+
+composite_signal = signal1 + signal2;
+
+% --- Step 2: Demultiplex and Recover S1 and S2 ---
+recovered_S1 = [];
+recovered_S2 = [];
+
+for i = 1:length(S1)
+    % Get each bit's signal from the composite
+    idx = (i-1)*length(t_bit)+1 : i*length(t_bit);
+    segment = composite_signal(idx);
+
+    % Demodulate S1 (using frequency f1)
+    ref1 = sin(2*pi*f1*t_bit);
+    result1 = trapz(t_bit, segment .* ref1);
+    recovered_S1 = [recovered_S1 result1 > 2];  % Threshold
+
+    % Demodulate S2 (using frequency f2)
+    ref2 = sin(2*pi*f2*t_bit);
+    result2 = trapz(t_bit, segment .* ref2);
+    recovered_S2 = [recovered_S2 result2 > 2];  % Threshold
+end
+
+% --- Step 3: Display Results ---
+disp('Recovered Signal S1:');
+disp(recovered_S1);
+disp('Recovered Signal S2:');
+disp(recovered_S2);
+
+% --- Step 4: Plot Results ---
+figure;
+subplot(2,1,1);
+stairs(recovered_S1, 'LineWidth', 2);
+title('Recovered Digital Signal S1');
+ylim([-0.5 1.5]); grid on;
+
+subplot(2,1,2);
+stairs(recovered_S2, 'LineWidth', 2);
+title('Recovered Digital Signal S2');
+ylim([-0.5 1.5]); grid on;
+
